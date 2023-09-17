@@ -1,0 +1,7 @@
+nume	prenume	varsta	salariu
+virsan	andrei	18	2400
+nedelcu	george	22	3200
+petre	mirela	25	4000
+titeche	anamaria	23	9000
+raskolnikov	rodeon	22	400
+cena	john	45	8900

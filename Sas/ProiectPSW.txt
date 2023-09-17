@@ -1,0 +1,122 @@
+
+
+/* 1. Crearea unui set de date SAS din fișiere externe */
+data employees;
+  infile '/home/u63413477/date_angajati_sas.txt' dlm=',' firstobs=2;
+  input ID Surname $ Name $ Age Sex $ Employment_Date : ddmmyy10. Department $ Salary;
+run;
+
+/* 2. Crearea și folosirea de formate definite de utilizator */
+data format_dept;
+  length start $3 label $20;
+  retain fmtname 'format_dept' type 'C';
+  input start $ label $;
+  datalines;
+F-IT    Finance & IT
+HR      HUMAN RESOURCES
+S-MK    SALES & MARKETING
+CO      CORPORATE OPERATIONS
+;
+run;
+
+proc format cntlin=format_dept;
+run;
+
+
+
+/* 3. Procesarea iterativă și condițională a datelor */
+data employees_high_salary;
+  set employees;
+  if Salary > 40000 and Age >= 30;
+run;
+
+/* 4. Crearea de subseturi de date */
+data employees_female;
+  set employees;
+  where Sex = 'F';
+run;
+
+/* 5. Utilizarea de funcții SAS */
+data employees_age_category;
+  set employees;
+  if Age < 30 then Age_Category = 'Young';
+  else Age_Category = 'Old';
+run;
+
+/* 6. Combinarea seturilor de date prin proceduri specifice SAS și SQL */
+proc sql;
+  create table employees_combined as
+  select *
+  from employees_high_salary
+  union
+  select *
+  from employees_age_category;
+quit;
+
+
+
+
+
+/* Definirea setului de date angajati */
+data angajati;
+  infile '/home/u63413477/date_angajati_sas.txt' dlm='09'x truncover;
+  input Obs ID Surname $ Name $ Age Sex $ Employment_Date : ddmmyy10. Department $ Salary;
+  format Employment_Date ddmmyy10.;
+run;
+
+/* Procesarea angajatilor cu salarii modificate */
+data angajati_modificati;
+  set angajati;
+  if Sex = 'M' and Employment_Date <= intnx('year', today(), -10) then do;
+    Salary = Salary * 1.1;
+    output;
+  end;
+  else if Sex = 'F' and Employment_Date <= intnx('year', today(), -10) then do;
+    Salary = Salary * 1.15;
+    output;
+  end;
+  drop Obs ID Sex Department;
+run;
+
+/* Afișarea angajatilor cu salarii modificate */
+proc print data=angajati_modificati;
+  var Surname Name Age Salary;
+  title 'Angajatii cu salariile modificate';
+run;
+
+
+
+/* angajati de minim 30 de ani*/
+
+data employees;
+  infile '/home/u63413477/date_angajati_sas.txt' dlm=',' firstobs=2;
+  input ID Surname $ Name $ Age Sex $ Employment_Date : ddmmyy10. Department $ Salary;
+run;
+
+data employees_over_30;
+  set employees;
+  where Age >= 30;
+run;
+
+proc print data=employees_over_30;
+  var Surname Name Age;
+run;
+
+
+/* 9. Utilizarea de funcții SAS pentru calculul mediei salariilor */
+proc sql noprint;
+  select mean(Salary) into :avg_salary from employees;
+quit;
+
+/* 10. Crearea unui subset de date cu salarii mai mari decât media */
+data high_salary_employees;
+  set employees;
+  where Salary > &avg_salary.;
+run;
+
+/* Afișarea subsetului de date */
+proc print data=high_salary_employees;
+  var Surname Name Age Salary;
+run;
+
+
